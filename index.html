@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ถาม-ตอบ ชีววิทยา</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+        }
+
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .question {
+            margin: 10px 0;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>ถาม-ตอบ ชีววิทยา</h1>
+
+        <h2>ส่งคำถามของคุณ</h2>
+        <form id="questionForm">
+            <input type="text" id="name" placeholder="ชื่อของคุณ" required>
+            <textarea id="question" placeholder="พิมพ์คำถามที่นี่" required></textarea>
+            <button type="submit">ส่งคำถาม</button>
+        </form>
+
+        <h2>คำถามล่าสุด</h2>
+        <div id="questions"></div>
+    </div>
+
+    <script>
+        document.getElementById('questionForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const question = document.getElementById('question').value;
+
+            if (name && question) {
+                const questionBox = document.createElement('div');
+                questionBox.className = 'question';
+                questionBox.innerHTML = `<strong>${name}</strong>: ${question}<p>กำลังโหลดคำตอบ...</p>`;
+
+                document.getElementById('questions').prepend(questionBox);
+
+                document.getElementById('name').value = '';
+                document.getElementById('question').value = '';
+
+                try {
+                    const response = await fetch('http://localhost:3000/ask', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ question })
+                    });
+
+                    const data = await response.json();
+                    const answer = data.answer;
+                    const imageUrl = data.imageUrl || 'biology_default.jpg';
+
+                    questionBox.innerHTML = `
+                        <strong>${name}</strong>: ${question}
+                        <p><strong>ตอบ:</strong> ${answer}</p>
+                        <img src="${imageUrl}" alt="ภาพประกอบชีววิทยา">
+                    `;
+                } catch (error) {
+                    questionBox.innerHTML = `<strong>${name}</strong>: ${question}<p style="color: red;">เกิดข้อผิดพลาดในการดึงคำตอบ</p>`;
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
